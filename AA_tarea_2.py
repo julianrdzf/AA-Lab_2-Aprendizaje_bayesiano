@@ -7,7 +7,6 @@ with open(archivo, encoding="utf8") as f:
 df_data = pd.DataFrame()    
 df_data['crudo']=pd.DataFrame(lines)
 
-
 #Se separan las columnas fecha, autor y texto
 df_data['fecha'] = df_data.crudo.str.split(r'[\[\]]', expand=True,regex=True)[1]
 df_data['autor'] = df_data.crudo.str.split(r'\[*\] |: ', expand=True,regex=True)[1]
@@ -15,9 +14,9 @@ df_data['texto'] = df_data.crudo.str.split(r'\][^:]+: ', expand=True,regex=True)
 #df_data.drop('crudo', inplace=True, axis=1)
 
 #Se quitan las filas con adjuntos omitidos
-df_data=df_data.drop(df_data[df_data['texto']=='‎imagen omitida'].index)
-df_data=df_data.drop(df_data[df_data['texto']=='‎audio omitido'].index)
-df_data=df_data.drop(df_data[df_data['texto']=='‎sticker omitido'].index)
+df_data=df_data.drop(df_data[df_data['texto']=='‎imagen omitida\n'].index)
+df_data=df_data.drop(df_data[df_data['texto']=='‎audio omitido\n'].index)
+df_data=df_data.drop(df_data[df_data['texto']=='‎sticker omitido\n'].index)
 
 #se pasa todo a minúsculas
 df_data['texto limpio']=df_data.texto.str.lower()
@@ -146,7 +145,11 @@ def recomendacion_bayesiana(frase):
         if h != '_total':
             prob = P[h]/P['_total']
             for d in D[-Horizonte:]:
-                prob = prob * PD[h].get(d, P_nada)/PD[h]['_apariciones']
+                prob_dada = PD[h].get(d, P_nada)
+                if prob_dada == P_nada:
+                    prob = prob * prob_dada
+                else:                    
+                    prob = prob * prob_dada/PD[h]['_apariciones']
                 
             if prob > p_MAP:
                 h_MAP , p_MAP = h , prob
