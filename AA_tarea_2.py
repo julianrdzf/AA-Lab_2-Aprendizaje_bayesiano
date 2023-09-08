@@ -2,14 +2,17 @@ import pandas as pd
 archivo = 'Datos/chat.txt'
 
 #Se cargan el archivo en un data frame
-df_data=pd.read_csv(archivo,sep='Sin separador', header=None)
-df_data.rename(columns={0:'crudo'},inplace=True)
+with open(archivo, encoding="utf8") as f:
+    lines = f.readlines()
+df_data = pd.DataFrame()    
+df_data['crudo']=pd.DataFrame(lines)
+
 
 #Se separan las columnas fecha, autor y texto
 df_data['fecha'] = df_data.crudo.str.split(r'[\[\]]', expand=True,regex=True)[1]
 df_data['autor'] = df_data.crudo.str.split(r'\[*\] |: ', expand=True,regex=True)[1]
 df_data['texto'] = df_data.crudo.str.split(r'\][^:]+: ', expand=True,regex=True)[1]
-df_data.drop('crudo', inplace=True, axis=1)
+#df_data.drop('crudo', inplace=True, axis=1)
 
 #Se quitan las filas con adjuntos omitidos
 df_data=df_data.drop(df_data[df_data['texto']=='‎imagen omitida'].index)
@@ -93,7 +96,7 @@ def entrenar_P(df):
         agregar_palabras_P(P, lista)
     return P
   
-#Genera un diccionario PD teniendo en cuenta N a partir de un Data Frame que contiene un columna con listar de palabras     
+#Genera un diccionario PD teniendo en cuenta N a partir de un Data Frame que contiene una columna con lista de palabras     
 def entrenar_PD(df, N):    
     PD={}    
     for lista in df:
