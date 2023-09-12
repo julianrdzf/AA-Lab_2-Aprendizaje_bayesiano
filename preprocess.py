@@ -8,7 +8,7 @@ archivo = 'Datos/chat.txt'
 import pandas as pd
 
 
-def load_data(filename:str)->pd.DataFrame:
+def load_wpp_data(filename:str)->pd.DataFrame:
     #Se carga el archivo en un dataframe
     with open(filename, encoding="utf8") as f:
         #saltear las primeras 3 lineas
