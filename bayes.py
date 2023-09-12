@@ -22,7 +22,7 @@ class BayesPredictor():
         
         self.horizonte=horizonte
         self.m=m
-        self.posteriori={}
+        self.posteriori=defaultdict(dict)
         self.priori={}
         self.estimador=defaultdict(dict)
         self.__train(ejemplos)
@@ -32,23 +32,35 @@ class BayesPredictor():
 
     def predict(self,phrase,verbose=False):
         subphrase=phrase[-self.horizonte:]
-        candidates={}
-        for word in self.vocab():
-            prob_word=1
-            for prev_word in subphrase:
-            
-                if not prev_word in self.vocab():
-                    prob=1
-                else:
-                    prob=self.estimador[word].get(prev_word,self.estimador[prev_word]['_default'])
-                prob_word*=prob
-            candidates[word]=prob_word
+        print(subphrase)
+        candidates=set()
+        candidates_scores={}
+        for word in subphrase:
 
-        #sort words to get the most probable
-        candidates=sorted(candidates.items(),key=lambda x:x[1],reverse=True)
+            if not word in self.vocab():
+                continue
+            for new_word in self.estimador[word].keys():
+                if new_word in ['_default']:
+                    continue
+                candidates.add(new_word)
+        print(candidates)
+        for new_word in candidates:
+            prob_word=1
+            for word in subphrase:
+                if not word in self.vocab():
+                    continue
+                prob=self.estimador[word].get(new_word,self.estimador[word]['_default'])
+                prob_word*=prob
+            candidates_scores[new_word]=prob_word
+
+        candidates_scores=sorted(candidates_scores.items(),key=lambda x:x[1],reverse=True)
+        
+        #todo falta ver que hacer si no hay candidatos, en ese caso todos deberian tener la misma probabilidad
+        #asi que capaz lo mejor es elegir la palabra mas probable y punto
         if verbose:
-            print(candidates[0:5])
-        return candidates[0]     
+            print(candidates_scores[0:5])
+        
+        return candidates_scores[0]     
     
     def vocab(self):
         vocab= list(self.priori.keys())
@@ -103,62 +115,50 @@ class BayesPredictor():
     #Agrega una lista de palabras a un diccionario PD
     def __agregar_palabras_posteriori(self,lista):
             
-        for i in range(len(lista)):
+        for i in range(0,len(lista)):
             agregadas = []
             for n in range(1,self.horizonte+1):            
-                if (i-n>=0):
+                if (i+n<len(lista)):
                     #Verifico que no sean dos palabras consecutivas iguales
-                    if not(lista[i-n] in agregadas):
-                        pal_objetivo=lista[i]
-                        pal_agregar=lista[i-n]
-                        if self.posteriori.get(pal_objetivo) is not None:
-                            if self.posteriori[pal_objetivo].get(pal_agregar) is not None:
-                                self.posteriori[pal_objetivo][pal_agregar]+=1            
-                            else:
-                                self.posteriori[pal_objetivo][pal_agregar]=1
-                                
-                            if self.posteriori[pal_objetivo].get('_total') is not None:    
-                                self.posteriori[pal_objetivo]['_total']+=1
-                            else:
-                                self.posteriori[pal_objetivo]['_total']=1
-                        else:
-                            self.posteriori[pal_objetivo]={}
-                            self.posteriori[pal_objetivo][pal_agregar]=1
-                            self.posteriori[pal_objetivo]['_total']=1
-                        agregadas.append(lista[i-n])
-            self.__sumar_aparicion_posteriori(lista[i])
+                    # if not(lista[i-n] in agregadas):
+                        pal_nueva=lista[i+n]
+                        pal_horizonte=lista[i]
+                      
+                        self.posteriori[pal_horizonte][pal_nueva]=self.posteriori[pal_horizonte].get(pal_nueva,0)+1     
+                        self.posteriori[pal_horizonte]['_total']=self.posteriori[pal_horizonte].get('_total',0)+1
+                       
+
+            #self.__sumar_aparicion_posteriori(lista[i])
 
 
 
 
-    #Suma una aparición a un diccionario PD
-    def __sumar_aparicion_posteriori(self, pal_objetivo):
-        if self.posteriori.get(pal_objetivo) is not None:        
-            if self.posteriori[pal_objetivo].get('_apariciones') is not None:
-                self.posteriori[pal_objetivo]['_apariciones']+=1
-            else:
-                self.posteriori[pal_objetivo]['_apariciones']=1
-        else:
-            self.posteriori[pal_objetivo]={}
-            self.posteriori[pal_objetivo]['_apariciones']=1
+    # # #Suma una aparición a un diccionario PD
+    # # def __sumar_aparicion_posteriori(self, pal_objetivo):
+    # #     if self.posteriori.get(pal_objetivo) is not None:        
+    # #         if self.posteriori[pal_objetivo].get('_apariciones') is not None:
+    # #             self.posteriori[pal_objetivo]['_apariciones']+=1
+    # #         else:
+    # #             self.posteriori[pal_objetivo]['_apariciones']=1
+    # #     else:
+    # #         self.posteriori[pal_objetivo]={}
+    # #         self.posteriori[pal_objetivo]['_apariciones']=1
 
     def __entrenar_estimador(self):
         for word in self.vocab():
-            for prev_word in self.posteriori[word].keys():
-                if prev_word in ['_total','_apariciones']:
+            for post_word in self.posteriori[word].keys():
+                if post_word in ['_total']:
                     continue
-                estimador=self.__compute_estimator(prev_word,word)
-                if estimador==1:
-                    continue
-                self.estimador[word][prev_word]=estimador
+                estimador=self.__compute_estimator(word,post_word)
+                self.estimador[word][post_word]=estimador
             self.estimador[word]['_default']=self.__compute_estimator(word,"-1")
-    def __compute_estimator(self,prev_word,word):
+    def __compute_estimator(self,word,post_word):
         #se busca computar el m-estimador de la probabilidad de la palabra word dada prev_word
         #eso es, dada la frecuencia de una palabra dada la prev word, se pondera segun la probabilidad
         #de esa palabra y un parametro m
 
-        n=self.priori[prev_word]
-        e=self.posteriori.get(word,{}).get(prev_word,0)/n
+        n=self.priori[word]
+        e=self.posteriori.get(word,{}).get(post_word,0)/n
         p=1/len(self.vocab())
         m_estimador=(e+self.m*p)/(self.m+n)
 
@@ -174,7 +174,8 @@ if __name__== "__main__":
     data=load_data(filename)
     print(data.head)
     predictor=BayesPredictor(data["palabras"],4)
-    print(predictor.predict(['hola']))
+    print(predictor.posteriori['vamo'],predictor.estimador['vamo'])
+    print(predictor.predict(['vamo']))
 
     
 
