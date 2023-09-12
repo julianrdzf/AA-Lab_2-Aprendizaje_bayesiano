@@ -17,7 +17,7 @@ import pandas as pd
 
 
 class BayesPredictor():
-    def __init__(self, ejemplos,horizonte,m=2):
+    def __init__(self, ejemplos,horizonte,m=2, palabras_validas):
         self.ejemplos=ejemplos
         
         self.horizonte=horizonte
@@ -25,7 +25,7 @@ class BayesPredictor():
         self.posteriori=defaultdict(dict)
         self.priori={}
         self.estimador=defaultdict(dict)
-        self.__train(ejemplos)
+        self.__train(ejemplos, palabras_validas)
    
 
 
@@ -75,23 +75,23 @@ class BayesPredictor():
     def update(self,frase):
         frase=minusculas(frase)
         self.__train([frase])
-    def __train(self,ejemplos):
-        self.__entrenar_prori(ejemplos)
-        self.__entrenar_posteriori(ejemplos)   
+    def __train(self,ejemplos, palabras_validas):
+        self.__entrenar_prori(ejemplos, palabras_validas)
+        self.__entrenar_posteriori(ejemplos, palabras_validas)   
         self.__entrenar_estimador()   
 
 
     #Genera un diccionario P a partir de un Data Frame que contiene un columna con listar de palabras     
-    def __entrenar_prori(self,lista_frases):
+    def __entrenar_prori(self,lista_frases, palabras_validas):
     
         self.priori['_total']=self.priori.get('_total',0)
         for frase in lista_frases:
-            self.__agregar_palabras_priori(frase)
+            self.__agregar_palabras_priori(frase, palabras_validas)
     
 
 
     #Agrega un lista de palabras a un diccionario P    
-    def __agregar_palabras_priori(self,frase):
+    def __agregar_palabras_priori(self,frase, palabras_validas):
         try:
             len(frase)
         except Exception as e:
@@ -103,17 +103,17 @@ class BayesPredictor():
                 self.priori[frase[i]]=1
             self.priori['_total']+=1
     #Genera un diccionario PD teniendo en cuenta N a partir de un Data Frame que contiene una columna con lista de palabras     
-    def __entrenar_posteriori(self,lista_frases):    
+    def __entrenar_posteriori(self,lista_frases, palabras_validas):    
   
         for frase in lista_frases:
-            self.__agregar_palabras_posteriori(frase)
+            self.__agregar_palabras_posteriori(frase, palabras_validas)
 
 
 
 
 
     #Agrega una lista de palabras a un diccionario PD
-    def __agregar_palabras_posteriori(self,lista):
+    def __agregar_palabras_posteriori(self,lista, palabras_validas):
             
         for i in range(0,len(lista)):
             agregadas = []
