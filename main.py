@@ -11,6 +11,8 @@ if __name__=="__main__":
     data=load_data(FILENAME)
     print(data.head)
     predictor=BayesPredictor(data["palabras"],4)
+    print(predictor.estimador['arriba'],predictor.posteriori['arriba'])
+    print(predictor.vocab())
     print("Ingrese la frase dando ENTER luego de \x1b[3mcada palabra\x1b[0m.")
     print("Ingrese sólo ENTER para aceptar la recomendación sugerida, o escriba la siguiente palabra y de ENTER")
     print("Ingrese '.' para comenzar con una frase nueva.")
