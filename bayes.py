@@ -97,11 +97,12 @@ class BayesPredictor():
         except Exception as e:
             print("Error: ",frase)
         for i in range(len(frase)):
-            if self.priori.get(frase[i]) is not None:        
-                self.priori[frase[i]]+=1
-            else:
-                self.priori[frase[i]]=1
-            self.priori['_total']+=1
+            if (frase[i] in palabras_validas) or (len(palabras_validas)==0):
+                if self.priori.get(frase[i]) is not None:        
+                    self.priori[frase[i]]+=1
+                else:
+                    self.priori[frase[i]]=1
+                self.priori['_total']+=1
     #Genera un diccionario PD teniendo en cuenta N a partir de un Data Frame que contiene una columna con lista de palabras     
     def __entrenar_posteriori(self,lista_frases, palabras_validas):    
   
@@ -123,9 +124,10 @@ class BayesPredictor():
                     # if not(lista[i-n] in agregadas):
                         pal_nueva=lista[i+n]
                         pal_horizonte=lista[i]
-                      
-                        self.posteriori[pal_horizonte][pal_nueva]=self.posteriori[pal_horizonte].get(pal_nueva,0)+1     
-                        self.posteriori[pal_horizonte]['_total']=self.posteriori[pal_horizonte].get('_total',0)+1
+                        
+                        if ((pal_nueva in palabras_validas) and (pal_horizonte in palabras_validas)) or (len(palabras_validas)==0):
+                            self.posteriori[pal_horizonte][pal_nueva]=self.posteriori[pal_horizonte].get(pal_nueva,0)+1     
+                            self.posteriori[pal_horizonte]['_total']=self.posteriori[pal_horizonte].get('_total',0)+1
                        
 
             #self.__sumar_aparicion_posteriori(lista[i])
