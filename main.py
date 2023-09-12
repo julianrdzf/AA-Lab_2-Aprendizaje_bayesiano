@@ -1,25 +1,19 @@
 import pandas as pd
 from bayes import BayesPredictor
 
-from preprocess import load_data
+from preprocess import load_wpp_data
 
 FILENAME = 'Datos/chat_big.txt'
 
 
 
 if __name__=="__main__":
-    data=load_data(FILENAME)
+    data=load_wpp_data(FILENAME)
     print(data.head)
     
     palabras_validas=set()    
-    with open('Datos/es.txt', 'r', encoding='utf-8') as archivo:
-        for linea in archivo:
-            palabra = linea.strip()  # Eliminar espacios en blanco y saltos de línea
-            palabras_validas.add(palabra)
+
     predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)        
-    #predictor=BayesPredictor(data["palabras"],4)
-    print(predictor.estimador['arriba'],predictor.posteriori['arriba'])
-    print(predictor.vocab())
     print("Ingrese la frase dando ENTER luego de \x1b[3mcada palabra\x1b[0m.")
     print("Ingrese sólo ENTER para aceptar la recomendación sugerida, o escriba la siguiente palabra y de ENTER")
     print("Ingrese '.' para comenzar con una frase nueva.")
@@ -34,7 +28,7 @@ if __name__=="__main__":
             break
     
         elif palabra == ".":
-            predictor.update(frase, palabras_validas)
+            predictor.update(frase)
                 
             print("----- Comenzando frase nueva -----")
             frase = []
@@ -46,7 +40,7 @@ if __name__=="__main__":
             frase.append(palabra)
     
         if frase:
-            palabra_sugerida = predictor.predict_lento(frase,verbose=True)#[0]
+            palabra_sugerida = predictor.predict(frase,verbose=True)
         
             frase_propuesta = frase.copy()
             frase_propuesta.append("\x1b[3m"+ palabra_sugerida +"\x1b[0m")
