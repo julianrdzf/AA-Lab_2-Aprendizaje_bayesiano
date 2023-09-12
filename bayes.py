@@ -17,7 +17,7 @@ import pandas as pd
 
 
 class BayesPredictor():
-    def __init__(self, ejemplos,horizonte,m=2, palabras_validas):
+    def __init__(self, ejemplos,horizonte,m=2, palabras_validas=set()):
         self.ejemplos=ejemplos
         
         self.horizonte=horizonte
@@ -175,6 +175,14 @@ if __name__== "__main__":
     filename = 'Datos/chat.txt'
     data=load_data(filename)
     print(data.head)
+    
+    palabras_validas=set()    
+    with open('Datos/es.txt', 'r', encoding='utf-8') as archivo:
+        for linea in archivo:
+            palabra = linea.strip()  # Eliminar espacios en blanco y saltos de línea
+            palabras_validas.add(palabra)
+    
+    #predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)
     predictor=BayesPredictor(data["palabras"],4)
     print(predictor.posteriori['vamo'],predictor.estimador['vamo'])
     print(predictor.predict(['vamo']))
