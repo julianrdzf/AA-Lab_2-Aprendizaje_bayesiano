@@ -96,10 +96,10 @@ class BayesPredictor():
         
         #todo falta ver que hacer si no hay candidatos, en ese caso todos deberian tener la misma probabilidad
         #asi que capaz lo mejor es elegir la palabra mas probable y punto
-        if verbose:
-            print(candidates_scores[0:5])
+        #if verbose:
+            #print(candidates_scores[0:5])
         
-        return candidates_scores     
+        return palabra     
     
     
      
@@ -107,9 +107,9 @@ class BayesPredictor():
 
     
 #region ENTRENAMIENTO
-    def update(self,frase):
+    def update(self,frase, palabras_validas ):
         frase=minusculas(frase)
-        self.__train([frase])
+        self.__train([frase], palabras_validas)
     def __train(self,ejemplos, palabras_validas):
         self.__entrenar_prori(ejemplos, palabras_validas)
         self.__entrenar_posteriori(ejemplos, palabras_validas)   
@@ -157,12 +157,12 @@ class BayesPredictor():
                 if (i-n>0):
                     #Verifico que no sean dos palabras consecutivas iguales
                     # if not(lista[i-n] in agregadas):
-                    pal_nueva=lista[i-n]
-                    pal_horizonte=lista[i]
-                    if ((pal_nueva in palabras_validas) and (pal_horizonte in palabras_validas)) or (len(palabras_validas)==0):  
-                        self.posteriori[pal_horizonte][pal_nueva]=self.posteriori[pal_horizonte].get(pal_nueva,0)+1     
-                        self.posteriori[pal_horizonte]['_total']=self.posteriori[pal_horizonte].get('_total',0)+1
-                        self.dic_candidatos[pal_nueva][pal_horizonte]=1
+                    pal_horizonte=lista[i-n]
+                    pal_fija=lista[i]
+                    if ((pal_horizonte in palabras_validas) and (pal_fija in palabras_validas)) or (len(palabras_validas)==0):  
+                        self.posteriori[pal_fija][pal_horizonte]=self.posteriori[pal_fija].get(pal_horizonte,0)+1     
+                        self.posteriori[pal_fija]['_total']=self.posteriori[pal_fija].get('_total',0)+1
+                        self.dic_candidatos[pal_horizonte][pal_fija]=1
                      
                     
                     
@@ -185,19 +185,19 @@ class BayesPredictor():
 
     def __entrenar_estimador(self):
         for word in self.vocab():
-            for post_word in self.posteriori[word].keys():
-                if post_word in ['_total']:
+            for horizonte_word in self.posteriori[word].keys():
+                if horizonte_word in ['_total']:
                     continue
-                estimador=self.__compute_estimator(word,post_word)
-                self.estimador[word][post_word]=estimador
+                estimador=self.__compute_estimator(word,horizonte_word)
+                self.estimador[word][horizonte_word]=estimador
             self.estimador[word]['_default']=self.__compute_estimator(word,"-1")
-    def __compute_estimator(self,word,post_word):
+    def __compute_estimator(self,word,horizonte_word):
         #se busca computar el m-estimador de la probabilidad de la palabra word dada prev_word
         #eso es, dada la frecuencia de una palabra dada la prev word, se pondera segun la probabilidad
         #de esa palabra y un parametro m
 
         n=self.priori[word]
-        e=self.posteriori.get(word,{}).get(post_word,0)/n
+        e=self.posteriori.get(word,{}).get(horizonte_word,0)
         p=1/len(self.vocab())
         m_estimador=(e+self.m*p)/(self.m+n)
 
@@ -222,11 +222,8 @@ if __name__== "__main__":
     filename = 'Datos/chat_big.txt'
     data=load_data(filename)
     print(data.head)
-    palabras_validas=set()
-    # palabras_validas.add('vamo')
-    # palabras_validas.add('arriba')
-    # palabras_validas.add('felicitaciones')
     
+    palabras_validas=set()    
     with open('Datos/es.txt', 'r', encoding='utf-8') as archivo:
         for linea in archivo:
             palabra = linea.strip()  # Eliminar espacios en blanco y saltos de línea
