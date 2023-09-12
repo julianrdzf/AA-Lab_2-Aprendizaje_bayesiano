@@ -167,6 +167,16 @@ class BayesPredictor():
         m_estimador=(e+self.m*p)/(self.m+n)
 
         return m_estimador
+    
+    def __mas_probable_sin_candidatos(self):
+        can=""
+        prob = 0
+        for word in self.vocab():
+            prob_actual=self.priori[word]/self.priori['_total']#*self.estimador[word]['_default']
+            if prob_actual>prob:
+                prob=prob_actual
+                can=word
+        return can
 #endregion
    
 
@@ -184,8 +194,8 @@ if __name__== "__main__":
             palabra = linea.strip()  # Eliminar espacios en blanco y saltos de línea
             palabras_validas.add(palabra)
     
-    #predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)
-    predictor=BayesPredictor(data["palabras"],4)
+    predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)
+    #predictor=BayesPredictor(data["palabras"],4)
     print(predictor.posteriori['vamo'],predictor.estimador['vamo'])
     print(predictor.predict(['vamo']))
 
