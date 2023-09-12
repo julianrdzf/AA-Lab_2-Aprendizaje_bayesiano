@@ -43,7 +43,9 @@ class BayesPredictor():
                 if new_word in ['_default']:
                     continue
                 candidates.add(new_word)
-        print(candidates)
+        #print(candidates)
+        if len(candidates)==0:
+            candidates.add(self.__mas_probable_sin_candidatos())
         for new_word in candidates:
             prob_word=1
             for word in subphrase:
