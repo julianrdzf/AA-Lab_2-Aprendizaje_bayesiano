@@ -97,17 +97,19 @@ for pred_N in predicciones:
         frecuencia[idx]=predictor.priori[palabra]
     frecuencias_N.append(frecuencia.copy())
     frecuencias_media.append(np.array(frecuencia).mean())
-N_eval=4
+N_eval=1
 df = pd.DataFrame(data={'predicciones':predicciones[N_eval-1],'comparaciones': comparaciones[N_eval-1],'frecuencias': frecuencias_N[N_eval-1]})
 aciertos=pd.DataFrame()
 aciertos['mean'] = df.groupby('comparaciones')['frecuencias'].mean()
 aciertos['std'] = df.groupby('comparaciones')['frecuencias'].std()
 aciertos.plot(kind='bar', y='mean', yerr='std', title = "Promedio y desviación estándar de las frecuencias de las palabras",color='grey', legend=False)
 plt.xticks(ticks=[False, True], labels=['error', 'acierto'], rotation=0 )
-plt.xlabel('Comparaciones')
+plt.xlabel(f'Comparaciones N={N_eval}')
 plt.ylabel('Frecuencia')
 
 #%%
+N_eval=4
+df = pd.DataFrame(data={'predicciones':predicciones[N_eval-1],'comparaciones': comparaciones[N_eval-1],'frecuencias': frecuencias_N[N_eval-1]})
 
 fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
 axs[0].violinplot(np.array(df[df['comparaciones']==True]['frecuencias']),widths=0.1, showmeans=True, showextrema=True, showmedians=False)
@@ -127,6 +129,7 @@ plt.plot(Ns, np.array(frecuencias_media), '.-', ms=10, lw=1)
 plt.xticks( Ns )
 plt.xlabel('N')
 plt.ylabel('Frecuencia media')
+
 plt.title('Frecuencia media de predicciones en función del hiperparámtero N')
 plt.show()
 
