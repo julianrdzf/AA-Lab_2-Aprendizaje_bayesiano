@@ -30,7 +30,7 @@ class BayesPredictor():
     
     def predict(self,phrase,verbose=False):
         subphrase=phrase[-self.horizonte:]
-        print(subphrase)
+        #print(subphrase)
         prob_max=-np.inf
         palabra=""
 
