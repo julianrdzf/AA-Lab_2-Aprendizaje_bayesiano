@@ -95,8 +95,8 @@ for pred_N in predicciones:
     for idx, palabra in enumerate(pred_N):
         frecuencia[idx]=predictor.priori[palabra]
     frecuencias_N.append(frecuencia.copy())
-
-df = pd.DataFrame(data={'predicciones':predicciones[0],'comparaciones': comparaciones[0],'frecuencias': frecuencias_N[0]})
+N_eval=2
+df = pd.DataFrame(data={'predicciones':predicciones[N_eval],'comparaciones': comparaciones[N_eval],'frecuencias': frecuencias_N[N_eval]})
 aciertos=pd.DataFrame()
 aciertos['mean'] = df.groupby('comparaciones')['frecuencias'].mean()
 aciertos['std'] = df.groupby('comparaciones')['frecuencias'].std()
