@@ -4,13 +4,14 @@ from bayes import BayesPredictor
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 from preprocess import load_wpp_data
 
 FILENAME = 'Datos/chat_big.txt'
 
 data=load_wpp_data(FILENAME)
 
-data, drop = train_test_split(data, test_size=0.90, random_state=45)
+data = data[:10000]
 
 train, test = train_test_split(data, test_size=0.15, random_state=45)
 #print(data.head)
@@ -29,11 +30,13 @@ Ns=[1,2,3,4]
 predicciones = []
 resultados= []
 comparaciones = []
+tiempos=[]
 for N in Ns:
     HORIZONTE=N
-    
+    inicio = time.time()
     predictor=BayesPredictor(train["palabras"],HORIZONTE, palabras_validas=palabras_validas) 
-    
+    fin = time.time()
+    tiempos.append(fin-inicio)
     test_real=[]
     prediccion=[]
     for frase in test['palabras']:
@@ -68,11 +71,22 @@ for N in Ns:
     resultados.append(sum(comparacion))
     comparaciones.append(comparacion)    
     
-#%%    
+#%%
+plt.figure()    
 plt.plot(np.array(resultados)/len(test_real)*100)
 plt.xticks(range(N), range(1,N+1))
 plt.xlabel('N')
 plt.ylabel('Porcentaje de aciertos [%]')
+plt.title('Aciertos en función del hiperparámtero N')
+plt.show()
+
+plt.figure()    
+plt.plot(np.array(tiempos))
+plt.xticks(range(N), range(1,N+1))
+plt.xlabel('N')
+plt.ylabel('Tiempo [s]')
+plt.title('Tiempo de entrenamiento en función del hiperparámtero N')
+plt.show()
 
 #%%
 frecuencias_N=[]
@@ -82,8 +96,6 @@ for pred_N in predicciones:
         frecuencia[idx]=predictor.priori[palabra]
     frecuencias_N.append(frecuencia.copy())
 
-res_1=np.array(frecuencias_N[0])-np.array(frecuencias_N[1])
-
 df = pd.DataFrame(data={'predicciones':predicciones[0],'comparaciones': comparaciones[0],'frecuencias': frecuencias_N[0]})
 aciertos=pd.DataFrame()
 aciertos['mean'] = df.groupby('comparaciones')['frecuencias'].mean()
@@ -92,3 +104,17 @@ aciertos.plot(kind='bar', y='mean', yerr='std', title = "Promedio y desviación 
 plt.xticks(ticks=[False, True], labels=['error', 'acierto'], rotation=0 )
 plt.xlabel('Comparaciones')
 plt.ylabel('Frecuencia')
+
+#%%
+
+fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
+axs[0].violinplot(np.array(df[df['comparaciones']==True]['frecuencias']),widths=0.1, showmeans=True, showextrema=True, showmedians=False)
+axs[1].violinplot(np.array(df[df['comparaciones']==False]['frecuencias']),widths=0.8, showmeans=True, showextrema=True, showmedians=False)
+axs[0].set_title('Aciertos')
+axs[1].set_title('Errores')
+axs[0].set_xticks([])
+axs[1].set_xticks([])
+axs[0].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
+axs[1].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
+axs[0].set_ylabel('Frecuencia')
+
