@@ -57,26 +57,35 @@ class BayesPredictor():
 
     
 #region ENTRENAMIENTO
-    def update(self,frase):
+    def update(self,frase,solo_cambios=False):
         frase=minusculas(frase)
-        self.__train([frase])
-    def __train(self,ejemplos):
-        self.__entrenar_prori(ejemplos)
-        self.__entrenar_posteriori(ejemplos)   
-        self.__entrenar_estimador()   
+        self.__train([frase],solo_cambios)
+    def __train(self,ejemplos,solo_cambios=False):
+        palabras_agregadas=self.__entrenar_prori(ejemplos)
+        self.__entrenar_posteriori(ejemplos)
+        if solo_cambios: 
+            print("entrenando solo cambios, agregando palabras: ",palabras_agregadas)
+            self.__entrenar_estimador(palabras_agregadas)  
+        else:
+            print("entrenando todo")
+            self.__entrenar_estimador() 
 
 
     #Genera un diccionario P a partir de un Data Frame que contiene un columna con listar de palabras     
     def __entrenar_prori(self,lista_frases):
     
         self.priori['_total']=self.priori.get('_total',0)
+        todas_palabras_agregadas=set()
         for frase in lista_frases:
-            self.__agregar_palabras_priori(frase)
+            palabras_agregadas=self.__agregar_palabras_priori(frase)
+            todas_palabras_agregadas=todas_palabras_agregadas.union(palabras_agregadas)
+        return todas_palabras_agregadas
     
 
 
     #Agrega un lista de palabras a un diccionario P    
     def __agregar_palabras_priori(self,frase):
+        palabras_agregadas=set()
         try:
             len(frase)
         except Exception as e:
@@ -88,6 +97,9 @@ class BayesPredictor():
                 else:
                     self.priori[frase[i]]=1
                 self.priori['_total']+=1
+                palabras_agregadas.add(frase[i])
+        return palabras_agregadas
+            
     #Genera un diccionario PD teniendo en cuenta N a partir de un Data Frame que contiene una columna con lista de palabras     
     def __entrenar_posteriori(self,lista_frases):    
   
@@ -119,8 +131,10 @@ class BayesPredictor():
 
            
 
-    def __entrenar_estimador(self):
-        for word in self.vocab():
+    def __entrenar_estimador(self,palabras_a_entrenar=None):
+        if palabras_a_entrenar is None:
+            palabras_a_entrenar=self.vocab()
+        for word in palabras_a_entrenar:
             for horizonte_word in self.posteriori[word].keys():
                 if horizonte_word in ['_total']:
                     continue
@@ -134,7 +148,10 @@ class BayesPredictor():
 
         n=self.priori[word]
         e=self.posteriori.get(word,{}).get(horizonte_word,0)
-        p=1/len(self.vocab())
+        if e==0:
+            p=1/len(self.vocab())
+        else:
+            p=n/self.priori['_total']
         m_estimador=(e+self.m*p)/(self.m+n)
 
         return m_estimador
@@ -155,7 +172,7 @@ class BayesPredictor():
 
 
 if __name__== "__main__":
-    filename = 'Datos/chat_big.txt'
+    filename = 'Datos/chat.txt'
     data=load_wpp_data(filename)
     print(data.head)
     
@@ -166,7 +183,6 @@ if __name__== "__main__":
             palabras_validas.add(palabra)
     
     predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)
-    print(predictor.posteriori['vamo'],predictor.estimador['vamo'])
     print(predictor.predict(['vamo']))
 
     
