@@ -73,16 +73,16 @@ for N in Ns:
     
 #%%
 plt.figure()    
-plt.plot(np.array(resultados)/len(test_real)*100)
-plt.xticks(range(N), range(1,N+1))
+plt.plot(Ns, np.array(resultados)/len(test_real)*100, '.-', ms=10, lw=1)
+plt.xticks( Ns )
 plt.xlabel('N')
 plt.ylabel('Porcentaje de aciertos [%]')
 plt.title('Aciertos en función del hiperparámtero N')
 plt.show()
 
 plt.figure()    
-plt.plot(np.array(tiempos))
-plt.xticks(range(N), range(1,N+1))
+plt.plot(Ns, np.array(tiempos), '.-', ms=10, lw=1)
+plt.xticks(Ns)
 plt.xlabel('N')
 plt.ylabel('Tiempo [s]')
 plt.title('Tiempo de entrenamiento en función del hiperparámtero N')
@@ -90,13 +90,15 @@ plt.show()
 
 #%%
 frecuencias_N=[]
+frecuencias_media = []
 frecuencia=np.zeros(len(predicciones[0]))
 for pred_N in predicciones:
     for idx, palabra in enumerate(pred_N):
         frecuencia[idx]=predictor.priori[palabra]
     frecuencias_N.append(frecuencia.copy())
-N_eval=2
-df = pd.DataFrame(data={'predicciones':predicciones[N_eval],'comparaciones': comparaciones[N_eval],'frecuencias': frecuencias_N[N_eval]})
+    frecuencias_media.append(np.array(frecuencia).mean())
+N_eval=4
+df = pd.DataFrame(data={'predicciones':predicciones[N_eval-1],'comparaciones': comparaciones[N_eval-1],'frecuencias': frecuencias_N[N_eval-1]})
 aciertos=pd.DataFrame()
 aciertos['mean'] = df.groupby('comparaciones')['frecuencias'].mean()
 aciertos['std'] = df.groupby('comparaciones')['frecuencias'].std()
@@ -117,4 +119,14 @@ axs[1].set_xticks([])
 axs[0].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
 axs[1].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
 axs[0].set_ylabel('Frecuencia')
+fig.suptitle(f'Distribución de las frecuencias de las predicciones para N={N_eval}', fontsize=16)
+
+#%%
+plt.figure()    
+plt.plot(Ns, np.array(frecuencias_media), '.-', ms=10, lw=1)
+plt.xticks( Ns )
+plt.xlabel('N')
+plt.ylabel('Frecuencia media')
+plt.title('Frecuencia media de predicciones en función del hiperparámtero N')
+plt.show()
 
