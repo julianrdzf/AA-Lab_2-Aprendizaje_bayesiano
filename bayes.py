@@ -148,23 +148,13 @@ class BayesPredictor():
 
         n=self.priori[word]
         e=self.posteriori.get(word,{}).get(horizonte_word,0)
-        if e==0:
-            p=1/len(self.vocab())
-        else:
-            p=n/self.priori['_total']
+        p=1/len(self.vocab())
+
         m_estimador=(e+self.m*p)/(self.m+n)
 
         return m_estimador
     
-    # def __mas_probable_sin_candidatos(self):
-    #     can=""
-    #     prob = 0
-    #     for word in self.vocab():
-    #         prob_actual=self.priori[word]/self.priori['_total']*self.estimador[word]['_default']
-    #         if prob_actual>prob:
-    #             prob=prob_actual
-    #             can=word
-    #     return can
+
 #endregion
    
 
@@ -179,7 +169,7 @@ if __name__== "__main__":
     palabras_validas=set()    
     with open('Datos/es.txt', 'r', encoding='utf-8') as archivo:
         for linea in archivo:
-            palabra = linea.strip()  # Eliminar espacios en blanco y saltos de línea
+            palabra = linea.strip()  
             palabras_validas.add(palabra)
     
     predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)
