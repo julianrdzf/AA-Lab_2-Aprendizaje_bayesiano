@@ -11,7 +11,7 @@ FILENAME = 'Datos/chat_big.txt'
 
 data=load_wpp_data(FILENAME)
 
-data = data[:10000]
+data = data[:1000]
 
 train, test = train_test_split(data, test_size=0.15, random_state=45)
 #print(data.head)
@@ -24,52 +24,53 @@ with open(SPANISH_DICT_FILENAME, 'r', encoding='utf-8') as archivo:
         palabra = linea.strip()
         palabras_validas.add(palabra) 
 
-
-m=2
+#Variar N
+m_s=[2]
 Ns=[1,2,3,4]
 predicciones = []
 resultados= []
 comparaciones = []
 tiempos=[]
-for N in Ns:
-    HORIZONTE=N
-    inicio = time.time()
-    predictor=BayesPredictor(train["palabras"],HORIZONTE, palabras_validas=palabras_validas) 
-    fin = time.time()
-    tiempos.append(fin-inicio)
-    test_real=[]
-    prediccion=[]
-    for frase in test['palabras']:
-        # print()
-        # print('Frase nueva:')
-        # print(frase)
-        for i in range(1,len(frase)):
-            
-            #print()
-            
-            frase_pred=frase[max(0,i-HORIZONTE):i]
-            test_real.append(frase[i])
-            pred=predictor.predict(frase_pred,verbose=False)
-            prediccion.append(pred)
-            
-            # print('Frase a predecir:')
-            # print(frase_pred)
-            # print('Real:')
-            # print(frase[i])
-            # print('Predicción:')
-            # print(pred)
-    
-          
-    comparacion=[]        
-    for i in range(len(test_real)):
-        if test_real[i]==prediccion[i]:
-            comparacion.append(True)
-        else:
-            comparacion.append(False)
-    
-    predicciones.append(prediccion)
-    resultados.append(sum(comparacion))
-    comparaciones.append(comparacion)    
+for m in m_s:
+    for N in Ns:
+        HORIZONTE=N
+        inicio = time.time()
+        predictor=BayesPredictor(train["palabras"],HORIZONTE, m, palabras_validas=palabras_validas) 
+        fin = time.time()
+        tiempos.append(fin-inicio)
+        test_real=[]
+        prediccion=[]
+        for frase in test['palabras']:
+            # print()
+            # print('Frase nueva:')
+            # print(frase)
+            for i in range(1,len(frase)):
+                
+                #print()
+                
+                frase_pred=frase[max(0,i-HORIZONTE):i]
+                test_real.append(frase[i])
+                pred=predictor.predict(frase_pred,verbose=False)
+                prediccion.append(pred)
+                
+                # print('Frase a predecir:')
+                # print(frase_pred)
+                # print('Real:')
+                # print(frase[i])
+                # print('Predicción:')
+                # print(pred)
+        
+              
+        comparacion=[]        
+        for i in range(len(test_real)):
+            if test_real[i]==prediccion[i]:
+                comparacion.append(True)
+            else:
+                comparacion.append(False)
+        
+        predicciones.append(prediccion)
+        resultados.append(sum(comparacion))
+        comparaciones.append(comparacion)    
     
 #%%
 plt.figure()    
@@ -77,7 +78,7 @@ plt.plot(Ns, np.array(resultados)/len(test_real)*100, '.-', ms=10, lw=1)
 plt.xticks( Ns )
 plt.xlabel('N')
 plt.ylabel('Porcentaje de aciertos [%]')
-plt.title('Aciertos en función del hiperparámtero N')
+plt.title('Aciertos en función del hiperparámetro N')
 plt.show()
 
 plt.figure()    
@@ -85,8 +86,10 @@ plt.plot(Ns, np.array(tiempos), '.-', ms=10, lw=1)
 plt.xticks(Ns)
 plt.xlabel('N')
 plt.ylabel('Tiempo [s]')
-plt.title('Tiempo de entrenamiento en función del hiperparámtero N')
+plt.title('Tiempo de entrenamiento en función del hiperparámetro N')
 plt.show()
+
+
 
 #%%
 frecuencias_N=[]
@@ -131,6 +134,91 @@ plt.xticks( Ns )
 plt.xlabel('N')
 plt.ylabel('Frecuencia media')
 
-plt.title('Frecuencia media de predicciones en función del hiperparámtero N')
+plt.title('Frecuencia media de predicciones en función del hiperparámetero N')
 plt.show()
 
+#%%
+#Variar m
+FILENAME = 'Datos/chat_big.txt'
+
+data=load_wpp_data(FILENAME)
+
+data = data[:1000]
+
+train, test = train_test_split(data, test_size=0.15, random_state=45)
+#print(data.head)
+
+SPANISH_DICT_FILENAME='Datos/es.txt'
+palabras_validas=set()   
+with open(SPANISH_DICT_FILENAME, 'r', encoding='utf-8') as archivo:
+    palabras_validas=set()
+    for linea in archivo:
+        palabra = linea.strip()
+        palabras_validas.add(palabra) 
+
+
+m_s=[1,40,64,200]
+#Ns=[1,2,3,4]
+Ns=[4]
+predicciones = []
+resultados= []
+comparaciones = []
+tiempos=[]
+for m in m_s:
+    for N in Ns:
+        HORIZONTE=N
+        inicio = time.time()
+        predictor=BayesPredictor(train["palabras"],HORIZONTE, m, palabras_validas=palabras_validas) 
+        fin = time.time()
+        tiempos.append(fin-inicio)
+        test_real=[]
+        prediccion=[]
+        for frase in test['palabras']:
+            # print()
+            # print('Frase nueva:')
+            # print(frase)
+            for i in range(1,len(frase)):
+                
+                #print()
+                
+                frase_pred=frase[max(0,i-HORIZONTE):i]
+                test_real.append(frase[i])
+                pred=predictor.predict(frase_pred,verbose=False)
+                prediccion.append(pred)
+                
+                # print('Frase a predecir:')
+                # print(frase_pred)
+                # print('Real:')
+                # print(frase[i])
+                # print('Predicción:')
+                # print(pred)
+        
+              
+        comparacion=[]        
+        for i in range(len(test_real)):
+            if test_real[i]==prediccion[i]:
+                comparacion.append(True)
+            else:
+                comparacion.append(False)
+        
+        predicciones.append(prediccion)
+        resultados.append(sum(comparacion))
+        comparaciones.append(comparacion)
+
+#%%
+
+plt.figure()    
+plt.plot(m_s, np.array(resultados)/len(test_real)*100, '.-', ms=10, lw=1)
+plt.xticks( m_s )
+plt.xlabel(f'N={Ns[0]}')
+plt.ylabel('Porcentaje de aciertos [%]')
+plt.title('Aciertos en función del hiperparámetro m')
+plt.show()
+
+plt.figure()    
+plt.plot(m_s, np.array(tiempos), '.-', ms=10, lw=1)
+plt.xticks(Ns)
+plt.xlabel(f'N={Ns[0]}')
+plt.ylabel('Tiempo [s]')
+plt.title('Tiempo de entrenamiento en función del hiperparámetro m')
+plt.show()
