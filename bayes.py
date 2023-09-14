@@ -175,10 +175,6 @@ if __name__== "__main__":
     predictor=BayesPredictor(data["palabras"],4, palabras_validas=palabras_validas)
     print(predictor.predict(['vamo']))
 
-    
-
-
-
 
 
     

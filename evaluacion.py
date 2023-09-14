@@ -97,29 +97,32 @@ for pred_N in predicciones:
         frecuencia[idx]=predictor.priori[palabra]
     frecuencias_N.append(frecuencia.copy())
     frecuencias_media.append(np.array(frecuencia).mean())
-N_eval=4
+N_eval=1
 df = pd.DataFrame(data={'predicciones':predicciones[N_eval-1],'comparaciones': comparaciones[N_eval-1],'frecuencias': frecuencias_N[N_eval-1]})
 aciertos=pd.DataFrame()
 aciertos['mean'] = df.groupby('comparaciones')['frecuencias'].mean()
 aciertos['std'] = df.groupby('comparaciones')['frecuencias'].std()
 aciertos.plot(kind='bar', y='mean', yerr='std', title = "Promedio y desviación estándar de las frecuencias de las palabras",color='grey', legend=False)
 plt.xticks(ticks=[False, True], labels=['error', 'acierto'], rotation=0 )
-plt.xlabel('Comparaciones')
+plt.xlabel(f'Comparaciones N={N_eval}')
 plt.ylabel('Frecuencia')
 
 #%%
-
-fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
-axs[0].violinplot(np.array(df[df['comparaciones']==True]['frecuencias']),widths=0.1, showmeans=True, showextrema=True, showmedians=False)
-axs[1].violinplot(np.array(df[df['comparaciones']==False]['frecuencias']),widths=0.8, showmeans=True, showextrema=True, showmedians=False)
-axs[0].set_title('Aciertos')
-axs[1].set_title('Errores')
-axs[0].set_xticks([])
-axs[1].set_xticks([])
-axs[0].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
-axs[1].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
-axs[0].set_ylabel('Frecuencia')
-fig.suptitle(f'Distribución de las frecuencias de las predicciones para N={N_eval}', fontsize=16)
+N_evals=[1,4]
+for N_evals_1 in N_evals:
+    df = pd.DataFrame(data={'predicciones':predicciones[N_evals_1-1],'comparaciones': comparaciones[N_evals_1-1],'frecuencias': frecuencias_N[N_evals_1-1]})
+    
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
+    axs[0].violinplot(np.array(df[df['comparaciones']==True]['frecuencias']),widths=0.1, showmeans=True, showextrema=True, showmedians=False)
+    axs[1].violinplot(np.array(df[df['comparaciones']==False]['frecuencias']),widths=0.8, showmeans=True, showextrema=True, showmedians=False)
+    axs[0].set_title('Aciertos')
+    axs[1].set_title('Errores')
+    axs[0].set_xticks([])
+    axs[1].set_xticks([])
+    axs[0].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
+    axs[1].set_ylim([df['frecuencias'].min()-0.1*df['frecuencias'].max(), df['frecuencias'].max()*1.1])
+    axs[0].set_ylabel('Frecuencia')
+    fig.suptitle(f'Distribución de las frecuencias de las predicciones para N={N_evals_1}', fontsize=16)
 
 #%%
 plt.figure()    
@@ -127,6 +130,7 @@ plt.plot(Ns, np.array(frecuencias_media), '.-', ms=10, lw=1)
 plt.xticks( Ns )
 plt.xlabel('N')
 plt.ylabel('Frecuencia media')
+
 plt.title('Frecuencia media de predicciones en función del hiperparámtero N')
 plt.show()
 
